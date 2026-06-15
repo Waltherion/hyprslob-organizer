@@ -1,0 +1,46 @@
+// HyprSlob Workspace Organizer - example configuration.
+//
+//   Copy this to  ~/.config/hyprslob-organizer/config.jsonc  and edit to taste.
+//   Saved changes apply instantly (live-reload). Without a config file the organizer falls back to
+//   sane monochrome defaults.
+//
+//   Limitation: no `//` inside string values (local paths use single-slash).
+{
+    // ---- Rainbow / gradient (one rolling 45-degree band runs through the box border, headers,
+    //      workspace numbers and cell outlines) ----
+    "rainbow": true,                  // true = rolling rainbow band; false = solid `accent`
+    "stops": ["#ffc048", "#ffa037", "#ff8418", "#fe5c1d", "#ac1c21", "#450512"],   // >=2 hex colours
+    "rainbowPeriod": 600,             // px per full rainbow: lower = tighter/more bands, higher = stretched
+    "rainbowSpeed": 1.0,              // roll speed: 1 = ~12s/cycle, 2 = faster, 0 = frozen, negative = reverse
+
+    // ---- Shape ----
+    "cornerRadius": 16,               // UI box + cell corner radius (px)
+    "borderWidth": 2,                 // UI box border width (px)
+
+    // ---- Font ----
+    "font": { "family": "Poppins", "size": 15, "weight": 400 },
+
+    // ---- Colours (omit a slot to keep its default) ----
+    "color": {
+        "background": "#0a0a0a",      // UI box background
+        "text":       "#fe5c1d",      // numbers / labels (when rainbow is off)
+        "accent":     "#ff8418",      // active workspace, hover, highlights
+        "border":     "#fe5c1d",      // UI box border (when rainbow is off)
+        "highlight":  "#ff8418"       // drop-target tint
+    },
+
+    // ---- Layout ----
+    "overview": {
+        "workspaceCount": 10,         // workspaces per monitor (matches split-monitor-workspaces' workspace_count)
+        "columns": 5,                 // grid columns; rows = ceil(workspaceCount / columns)
+        "monitorOrder": [],           // e.g. ["DP-1","DP-3"] = priority order (block 0, 1, ...); [] = derive from live state
+        "direction": "vertical",      // "vertical" = monitors stacked in number order; "horizontal" = side by side
+        "spacing": 28,                // px between monitor sections (and grid <-> scratchpads)
+        "cellGap": 10,                // px between workspace cells
+        "scale": 0.18,                // max zoom factor (raise for a bigger board on large screens)
+        "backdropOpacity": 0.45,      // desktop dim behind the box: 0 = desktop fully visible, 1 = black
+        "livePreviews": true,         // false = icon-only tiles (no live ScreencopyView)
+        "showSpecial": true,          // show special/scratch workspaces to the right of each grid
+        "headers": true               // small monitor + "Scratchpads" titles above each section
+    }
+}
