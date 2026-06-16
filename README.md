@@ -42,17 +42,22 @@ by one rolling rainbow band.
 ```sh
 git clone https://github.com/Waltherion/hyprslob-organizer.git \
   ~/.config/quickshell/hyprslob-organizer
-qs -c hyprslob-organizer        # runs it (idle until opened)
+qs -n -c hyprslob-organizer      # runs it (idle until opened)
 ```
+
+The `-n` (`--no-duplicate`) flag makes a second launch of the **same config** exit immediately,
+so you never end up with two overlays stacked (e.g. autostart + a manual run, or a flaky
+theme-switch restart). It's per-config — it never touches your other Quickshell instances. To
+force-clear a stuck instance, use Quickshell's own registry: `qs kill -c hyprslob-organizer`.
 
 Bind a key and open it via IPC. In `hyprland.lua`:
 
 ```lua
--- autostart (runs idle, costs nothing until opened)
-hl.exec_cmd("qs -c hyprslob-organizer")
+-- autostart (idle, -n prevents a duplicate instance)
+hl.exec_cmd("qs -n -c hyprslob-organizer")
 
--- toggle the exposé (example: Super + Å on a Danish layout)
-hl.bind("SUPER + aring", hl.dsp.exec_cmd("qs -c hyprslob-organizer ipc call organizer toggle"))
+-- toggle the exposé (examples: Super+Ctrl+Tab, or Super+Å on a Danish layout)
+hl.bind("SUPER + CTRL + Tab", hl.dsp.exec_cmd("qs -c hyprslob-organizer ipc call organizer toggle"))
 
 -- (optional) blur the visible desktop behind the exposé
 hl.layer_rule({ match = { namespace = "quickshell-hyprslob-organizer" }, blur = true })
@@ -98,7 +103,10 @@ empirical write-up is in [`docs/FINDINGS.md`](docs/FINDINGS.md).
 
 ## Status
 
+**v0.2** — recommends `qs -n` (`--no-duplicate`) so an autostart + manual run can't stack two
+overlays; per-config, so it never touches other Quickshell instances.
 **v0.1** — first public release. Functional and themed; daily-driver on the author's 2-monitor setup.
+
 Known gaps: classic (non-Lua) Hyprland config support, dynamic-N polish for 3+ monitors, and screenshots.
 Contributions and issues welcome.
 
