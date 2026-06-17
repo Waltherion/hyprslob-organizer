@@ -16,19 +16,21 @@ Item {
         "bloom": 0.0,               // glow strength 0..1 (x48px blur); 0 = off (free)
         "opacity": 1.0,             // whole-pill opacity 0..1
         "scale": 1.0,               // whole-pill scale
-        "cornerRadius": 14,         // pill corner radius (px)
-        "borderWidth": 0,           // pill border width (px); 0 = no border
+        "cornerRadius": 0,          // pill corner radius (px); 0 = sharp 90° corners (minimalism)
+        "borderWidth": 2,           // pill border width (px); 0 = no border
         "hasBox": true,             // false = no pill background box (text only)
         "showVisualizer": false,    // true = Day morphs to the cava visualizer when audio plays
         "wsSide": "date",           // which side field shows the workspace dots: "time" | "date"
         "wsTrigger": "both",        // "change" | "hover" | "both" | "always"
-        "stops": [],                // rainbow gradient hex stops, e.g. ["#ff0000","#00ff00","#0000ff"]
-        "rainbowPeriod": 420,       // px per full rainbow across the bar: lower = tighter/more, higher = stretched
-        "rainbowSpeed": 1.0,        // roll speed: 1 = ~12s/cycle, 2 = faster, 0.5 = slower, 0 = frozen, <0 = reverse
+        "stops": ["#ffffff"],       // rainbow gradient hex stops, e.g. ["#ff0000","#00ff00","#0000ff"]
+        "rainbowPeriod": 3000,      // px per full rainbow across the board: lower = tighter/more, higher = stretched
+        "rainbowSpeed": 3.0,        // roll speed: 1 = ~12s/cycle, 2 = faster, 0.5 = slower, 0 = frozen, <0 = reverse
         "colors": "",               // optional path to an external color file (same shape as "color")
-        "color": {},                // {background,text,accent,border,highlight} - omit a slot for the default
+        // Fallback appearance MIRRORS the monochrome-minimalism-dark theme (white-on-dark), so a
+        // missing/broken config looks identical to the bar's neutral fallback. Themes override this.
+        "color": { "background": "#4c000000", "text": "#ffffff", "accent": "#ffffff", "border": "#ffffff", "highlight": "#ffffff" },
         "icon": {},                 // {left,right} SVG icon paths
-        "font": {},                 // {family,size,weight}
+        "font": { "family": "Poppins", "size": 15, "weight": 400 },
         "commands": {},             // {lock,suspend,logout,reboot,poweroff} power-button commands (sh -c)
         "sleepLabel": "Sleep",      // label on the suspend button (set "Hibernate" if you hibernate)
         "lowBatteryThreshold": 15,  // notify once when the battery falls to this % while discharging (laptops)
@@ -47,12 +49,13 @@ Item {
             "columns": 5,           // grid columns; rows = ceil(workspaceCount/columns)
             "monitorOrder": [],     // e.g. ["DP-1","DP-3"] = priority order (block 0,1,...); [] = derive from live state
             "direction": "vertical",// "vertical" = monitors stacked top->bottom in number order; "horizontal" = side by side
-            "spacing": 24,          // px between monitor sections
+            "spacing": 28,          // px between monitor sections
             "cellGap": 10,          // px between workspace cells
             "scale": 0.18,          // max zoom factor (cap)
-            "backdropOpacity": 0.4, // desktop dim behind the board: 0 = desktop fully visible, 1 = black
+            "backdropOpacity": 0.45,// desktop dim behind the board: 0 = desktop fully visible, 1 = black
             "livePreviews": true,   // false = icon-only tiles (no ScreencopyView)
-            "showSpecial": true     // show each monitor's special/scratch workspaces in a strip
+            "showSpecial": true,    // show each monitor's special/scratch workspaces in a strip
+            "headers": true         // show the small monitor / "Scratchpads" headers above each section
         }
     })
 

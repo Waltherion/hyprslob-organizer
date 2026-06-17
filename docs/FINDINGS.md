@@ -44,6 +44,24 @@ Hyprland.dispatch(`hl.dsp.window.move({workspace='${realId}', window='address:${
 - TODO Fase 5: bekræft at `{monitor=M}` ikke stjæler fokus væk fra exposéet (tilføj evt.
   `follow=false` til workspace-dispatchen — shelved-koden brugte det).
 
+## 3b. ⚠️ FORFINING (med exposéet ÅBENT) — FOKUS, ikke vinduets monitor, binder en tom ws
+
+Fase 1 testede UDEN overlay. Med exposéet oppe holder det EXCLUSIVE keyboard-fokus på sin egen
+monitor, og der er INTET fokuseret vindue. Så reglen skifter: en **tom** target-ws bindes til den
+**FOKUSEREDE monitor** (exposéets), ikke vinduets. Et rent vindue-flyt (`window.move({monitor=M})`)
+ankrer derfor IKKE — ws'en ghoster stadig til exposéets skærm når man omarrangerer på en ANDEN skærm
+end den man ser exposéet på (fx vindue på DP-1, exposé på DP-3, drop på ny celle på DP-1 ⇒ ws på DP-3).
+
+✅ Fix = **fokus-dans**: fokusér target-monitoren → silent ws-move → fokusér tilbage til exposéets
+monitor (så overlayet bliver stående). Kun nødvendigt når target-monitor ≠ exposéets monitor:
+
+```js
+const overlayMon = Hyprland.focusedMonitor.name;
+if (target !== overlayMon) Hyprland.dispatch(`hl.dsp.focus({monitor='${target}'})`);
+Hyprland.dispatch(`hl.dsp.window.move({workspace='${realId}', follow=false, window='address:${addr}'})`);
+if (target !== overlayMon) Hyprland.dispatch(`hl.dsp.focus({monitor='${overlayMon}'})`);
+```
+
 ## 4. ✅ Skift monitor M til virtuel ws V (klik på workspace-celle)
 
 Samme mønster — **monitor først, så workspace** (ellers ghoster tom celle):

@@ -105,7 +105,7 @@ Item {
             y: sec.headerH + rowIdx * (sec.cellH + sec.cellGap)
             width: sec.cellW
             height: sec.cellH
-            radius: 6
+            radius: sec.pal ? sec.pal.cellRadius : 6
             // fill: drop-target > hover > active > idle
             color: cell.isDropTarget ? Qt.rgba(sec.cHighlight.r, sec.cHighlight.g, sec.cHighlight.b, 0.30)
                  : cell.hovered       ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.18)
@@ -168,7 +168,7 @@ Item {
             y: sec.headerH + sRow * (sec.cellH + sec.cellGap)
             width: sec.cellW
             height: sec.cellH
-            radius: 6
+            radius: sec.pal ? sec.pal.cellRadius : 6
             // same colour rules as the numbered cells (no separate red design)
             color: stile.isDrop  ? Qt.rgba(sec.cHighlight.r, sec.cHighlight.g, sec.cHighlight.b, 0.30)
                  : stile.hovered ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.18)

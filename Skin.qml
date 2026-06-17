@@ -73,6 +73,10 @@ QtObject {
 
     // ---- Shape / glow / opacity / font (all from config, with defaults) ----
     readonly property real radius:      (cfg && typeof cfg.cornerRadius === "number") ? cfg.cornerRadius : 14
+    // small elements (workspace cells, window tiles, hover film) round PROPORTIONALLY to the frame
+    // radius, so a single cornerRadius knob controls every corner: 0 = sharp everywhere (matches the
+    // bar in the minimalism theme); larger values scale all corners together.
+    readonly property real cellRadius:  Math.round(radius * 0.4)
     readonly property bool rainbow:     cfg ? (cfg.rainbow === true) : false
     readonly property real bloom:       (cfg && typeof cfg.bloom === "number") ? Math.max(0, Math.min(1, cfg.bloom)) : 0
     readonly property real uiOpacity:   cfg ? cfg.uiOpacity : 1

@@ -190,22 +190,33 @@ Item {
     function clearSpecialDropTarget(name) {
         if (draggingTargetSpecial === name) { draggingTargetSpecial = ""; draggingTargetSpecialMon = ""; draggingTargetSpecialMonId = -1; }
     }
-    // Special workspaces are monitor-bound, BUT an EMPTY one created via a cross-monitor move lands on
-    // the window's CURRENT monitor (same ghost as numbered ws). So move to the special's monitor FIRST,
-    // then onto the special ws (FINDINGS.md §3, applied to special).
+    // Special workspaces are monitor-bound via ws-rules, BUT an EMPTY one still binds to the FOCUSED
+    // monitor at birth (the exposé's, since it holds exclusive focus). Same focus dance as moveWindow:
+    // focus the special's monitor so it's born there, move silently, restore focus to the exposé.
     function moveWindowToSpecial(addr, name, monName, monId, curMonId) {
         if (!addr || !name) return;
-        if (monName && monName.length && curMonId !== monId)
-            Hyprland.dispatch(`hl.dsp.window.move({monitor = '${monName}', window = 'address:${addr}'})`);
+        const overlayMon = Hyprland.focusedMonitor ? `${Hyprland.focusedMonitor.name}` : "";
+        const dance = monName && monName.length && overlayMon.length && overlayMon !== `${monName}`;
+        if (dance) Hyprland.dispatch(`hl.dsp.focus({monitor = '${monName}'})`);
         Hyprland.dispatch(`hl.dsp.window.move({workspace = 'special:${name}', follow = false, window = 'address:${addr}'})`);
+        if (dance) Hyprland.dispatch(`hl.dsp.focus({monitor = '${overlayMon}'})`);
     }
 
-    // Move window X onto monitor M's virtual ws (real id). PROVEN sequence (FINDINGS.md §3).
+    // Move window X onto monitor M's virtual ws (real id). KEY FACT (confirmed empirically): a NEW
+    // (empty) workspace is bound to whatever monitor is FOCUSED at the instant it's born — and the
+    // exposé holds exclusive focus on the monitor it's shown on. A window-move alone does NOT change
+    // that focus, so it can't re-home the ws (an earlier attempt failed for exactly this reason).
+    // Fix = focus dance: briefly focus the TARGET monitor so the ws is born/bound there, move the
+    // window silently into it, then restore focus to the exposé's own monitor so the overlay stays
+    // put. Only needed when dropping onto a DIFFERENT monitor than the one showing the exposé;
+    // same-monitor drops already have focus on the right screen.
     function moveWindow(addr, realId, monName, monId, curMonId) {
         if (!addr) return;
-        if (monName && monName.length && curMonId !== monId)
-            Hyprland.dispatch(`hl.dsp.window.move({monitor = '${monName}', window = 'address:${addr}'})`);
+        const overlayMon = Hyprland.focusedMonitor ? `${Hyprland.focusedMonitor.name}` : "";
+        const dance = monName && monName.length && overlayMon.length && overlayMon !== `${monName}`;
+        if (dance) Hyprland.dispatch(`hl.dsp.focus({monitor = '${monName}'})`);
         Hyprland.dispatch(`hl.dsp.window.move({workspace = '${realId}', follow = false, window = 'address:${addr}'})`);
+        if (dance) Hyprland.dispatch(`hl.dsp.focus({monitor = '${overlayMon}'})`);
     }
     function focusWindow(addr) {
         if (!addr) return;
@@ -393,7 +404,7 @@ Item {
                     hoverBorder: canvas.cAccent
                     hovered: dragMA.containsMouse
                     pressed: tileWrap.dragging
-                    radiusPx: 6
+                    radiusPx: pal ? pal.cellRadius : 6
                 }
 
                 // hover "film" over the WHOLE cell, painted ON TOP of the window thumbnail (same look as
@@ -404,7 +415,7 @@ Item {
                     y: tileWrap.cellY - tileWrap.baseY
                     width: tileWrap.mi >= 0 ? canvas.cellW(tileWrap.mi) : 0
                     height: tileWrap.mi >= 0 ? canvas.cellH(tileWrap.mi) : 0
-                    radius: 6
+                    radius: pal ? pal.cellRadius : 6
                     color: Qt.rgba(canvas.cAccent.r, canvas.cAccent.g, canvas.cAccent.b, 0.20)
                     border.width: 2
                     border.color: canvas.cAccent
