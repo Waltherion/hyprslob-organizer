@@ -1,5 +1,8 @@
 # HyprSlob Workspace Organizer
 
+<img width="512" height="512" alt="hyprslob-organizer-512x512" src="https://github.com/user-attachments/assets/1156faf8-c94f-4fcd-969d-7429a08f7c3e" />
+
+
 A standalone, full-screen **workspace + window exposé** for [Hyprland](https://hyprland.org/),
 built with [Quickshell](https://quickshell.org/). Press a key and every monitor's workspaces fan out
 on the focused screen with **live window thumbnails** — click to jump, drag to rearrange, all themed
