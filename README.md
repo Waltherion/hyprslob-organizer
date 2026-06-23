@@ -1,6 +1,8 @@
-# HyprSlob Workspace Organizer
+<p align="center">
+  <img width="256" height="256" alt="HyprSlob Workspace Organizer icon" src="assets/icon-512x512.png" />
+</p>
 
-<img width="512" height="512" alt="hyprslob-organizer-512x512" src="https://github.com/user-attachments/assets/1156faf8-c94f-4fcd-969d-7429a08f7c3e" />
+<h1 align="center">HyprSlob Workspace Organizer</h1>
 
 
 A standalone, full-screen **workspace + window exposé** for [Hyprland](https://hyprland.org/),
