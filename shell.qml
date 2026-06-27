@@ -27,6 +27,19 @@ ShellRoot {
     Config { id: appcfg }
     Skin { id: skin; cfg: appcfg; phase: root.rainbowPhase }
 
+    // First-launch config seed: if ~/.config/hyprslob-organizer/config.jsonc does not exist
+    // (neither a regular file nor a symlink), drop the fully-commented monochrome default there so
+    // a fresh user has a self-documenting file to edit. Never clobbers an existing file or symlink
+    // (so a theme symlink is untouched).
+    Process {
+        running: true
+        command: ["sh", "-c",
+            "f=\"$HOME/.config/hyprslob-organizer/config.jsonc\"; " +
+            "d=\"$HOME/.config/quickshell/hyprslob-organizer/config.default.jsonc\"; " +
+            "if [ ! -e \"$f\" ] && [ ! -L \"$f\" ] && [ -f \"$d\" ]; then " +
+            "mkdir -p \"$(dirname \"$f\")\" && cp \"$d\" \"$f\"; fi"]
+    }
+
     // Global open state. The exposé is shown only on the focused monitor (each per-screen window
     // gates itself on Hyprland.focusedMonitor), so "follow focus" is automatic.
     property bool open: false

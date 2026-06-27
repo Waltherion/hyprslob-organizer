@@ -1,0 +1,52 @@
+{
+  // ========================================================================
+  //  HyprSlob Workspace Organizer - configuration.  Appearance + layout.
+  //  Live-reload: save the file and the exposé updates instantly (no restart).
+  //
+  //  Every option below is shown COMMENTED OUT with its built-in default - which
+  //  mirrors the clean "monochrome-minimalism" look (white-on-dark, sharp corners,
+  //  rainbow off). Uncomment a line and change the value to override it. Anything
+  //  left commented falls back to the default, so an empty {} is a valid config.
+  //
+  //  For a colourful, fully-filled-in sample, see config.example.jsonc.
+  // ========================================================================
+
+  // ---- Rainbow / gradient ----  (one rolling 45-degree band runs through the box
+  //      border, headers, workspace numbers and cell outlines)
+  // "rainbow": false,          // true = rolling rainbow band; false = solid `accent`
+  // "stops": ["#ffffff"],      // >=2 hex colours for the band (only used when rainbow = true)
+  // "rainbowPeriod": 3000,     // px per full rainbow: lower = tighter/more bands, higher = stretched
+  // "rainbowSpeed": 3.0,       // roll speed: 1 = ~12s/cycle, 2 = faster, 0 = frozen, negative = reverse
+
+  // ---- Shape ----
+  // "cornerRadius": 0,         // UI box + cell corner radius in px (0 = sharp 90° corners)
+  // "borderWidth": 2,          // UI box / cell border width in px (0 = no border)
+
+  // ---- Typography ----
+  // "font": { "family": "Poppins", "size": 15, "weight": 400 },
+
+  // ---- Colours ----  (omit any slot to keep its default)
+  // "color": {
+  //   "background": "#4c000000",   // UI box background (ARGB or RGB hex)
+  //   "text":       "#ffffff",     // numbers / labels (when rainbow is off)
+  //   "accent":     "#ffffff",     // active workspace, hover, highlights
+  //   "border":     "#ffffff",     // UI box / cell border (when rainbow is off)
+  //   "highlight":  "#ffffff"      // drop-target tint
+  // },
+  // "colors": "",              // OR: path to an external color file (same shape as "color")
+
+  // ---- Layout ----  (the board geometry; appearance above is shared with the look)
+  // "overview": {
+  //   "workspaceCount": 10,    // workspaces per monitor (matches split-monitor-workspaces' workspace_count)
+  //   "columns": 5,            // grid columns; rows = ceil(workspaceCount / columns)
+  //   "monitorOrder": [],      // e.g. ["DP-1","DP-3"] = priority order (block 0, 1, ...); [] = derive from live state
+  //   "direction": "vertical", // "vertical" = monitors stacked in number order; "horizontal" = side by side
+  //   "spacing": 28,           // px between monitor sections (and grid <-> scratchpads)
+  //   "cellGap": 10,           // px between workspace cells
+  //   "scale": 0.18,           // max zoom factor (raise for a bigger board on large screens)
+  //   "backdropOpacity": 0.45, // desktop dim behind the box: 0 = desktop fully visible, 1 = black
+  //   "livePreviews": true,    // false = icon-only tiles (no live ScreencopyView)
+  //   "showSpecial": true,     // show special/scratch workspaces to the right of each grid
+  //   "headers": true          // small monitor + "Scratchpads" titles above each section
+  // }
+}
