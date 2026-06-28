@@ -24,6 +24,7 @@ Item {
     property real specialGap: 30        // gap between the numbered grid and the special tiles
     property real headerH: 24           // height of the small title row above the grid (0 = no header)
     property real contentX0: 0          // this section's x within content (for rainbow band positioning)
+    property real contentY0: 0          // this section's y within content (band sampled in content-local space)
     property real numberSize: 14
 
     readonly property string monName: monitorData ? `${monitorData.name}` : ""
@@ -43,12 +44,13 @@ Item {
     readonly property color cHighlight: pal ? pal.highlight  : "#ffffff"
     readonly property string cFont:     pal ? pal.fontFamily : "Poppins"
 
-    // rolling-band colour for an item, sampled at its global (x+y) -> matches the 45deg box border.
+    // rolling-band colour for an item, sampled in CONTENT-LOCAL space (contentX0/Y0 + position within
+    // the section) so it matches the box border + cell borders exactly, independent of scene scaling.
     // Falls back to solid accent when rainbow is off. Re-evaluates on phase change (bandAt reads phase).
     function bandColorAt(item) {
         if (!pal || !pal.rainbow) return cAccent;
-        const p = item.mapToItem(null, item.width / 2, item.height / 2);
-        return pal.bandAt(p.x + p.y);
+        const p = item.mapToItem(sec, item.width / 2, item.height / 2);
+        return pal.bandAt(sec.contentX0 + p.x + sec.contentY0 + p.y);
     }
 
     implicitWidth: gridW + (specialCols > 0 ? specialGap + specialBlockW : 0)
@@ -111,8 +113,9 @@ Item {
                  : cell.hovered       ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.18)
                  : cell.isActive      ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.12)
                  :                       Qt.rgba(sec.cText.r, sec.cText.g, sec.cText.b, 0.05)
-            border.width: (cell.isActive || cell.hovered) ? 2 : 1
-            // idle border samples the rolling band; active/hover stay solid accent for clear feedback
+            // when rainbow is on, the bandCells Canvas draws ALL cell borders (one gradient flowing
+            // through them); otherwise use the flat per-cell border (active/hover solid, idle 1-sample).
+            border.width: (sec.pal && sec.pal.rainbow) ? 0 : ((cell.isActive || cell.hovered) ? 2 : 1)
             border.color: cell.isActive ? sec.cAccent
                  : cell.hovered ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.7)
                  : Qt.rgba(cell.bandColor.r, cell.bandColor.g, cell.bandColor.b, 0.45)
@@ -173,7 +176,7 @@ Item {
             color: stile.isDrop  ? Qt.rgba(sec.cHighlight.r, sec.cHighlight.g, sec.cHighlight.b, 0.30)
                  : stile.hovered ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.18)
                  :                  Qt.rgba(sec.cText.r, sec.cText.g, sec.cText.b, 0.05)
-            border.width: (stile.isDrop || stile.hovered) ? 2 : 1
+            border.width: (sec.pal && sec.pal.rainbow) ? 0 : ((stile.isDrop || stile.hovered) ? 2 : 1)
             border.color: (stile.isDrop || stile.hovered) ? sec.cAccent
                                                           : Qt.rgba(stile.bandColor.r, stile.bandColor.g, stile.bandColor.b, 0.45)
             Behavior on color { ColorAnimation { duration: 120 } }
@@ -185,6 +188,77 @@ Item {
                 anchors.fill: parent
                 onEntered: if (sec.canvas) sec.canvas.setSpecialDropTarget(stile.modelData, sec.monName, sec.monId);
                 onExited: if (sec.canvas && sec.canvas.draggingTargetSpecial === stile.modelData) sec.canvas.clearSpecialDropTarget(stile.modelData);
+            }
+        }
+    }
+
+    // ---- Rolling-band cell borders ----
+    // One Canvas strokes EVERY cell outline (numbered + special) with the same rolling 45deg band,
+    // sampled at each cell's GLOBAL (x+y), so the gradient flows continuously THROUGH the borders
+    // instead of one flat colour per cell. Only when rainbow is on (the flat Rectangle borders are
+    // disabled then). Active cell: full-alpha, 2px. Repaints on phase (rolls) / active change / resize.
+    Canvas {
+        id: bandCells
+        anchors.fill: parent
+        visible: sec.pal && sec.pal.rainbow && sec.pal.stops && sec.pal.stops.length >= 2
+        antialiasing: true
+        renderStrategy: Canvas.Cooperative
+        property real phase: sec.pal ? sec.pal.phase : 0
+        property int activeWs: sec.activeWsId
+        onPhaseChanged: requestPaint()
+        onActiveWsChanged: requestPaint()
+        onVisibleChanged: if (visible) requestPaint()
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        onPaint: {
+            const ctx = getContext("2d");
+            ctx.reset();
+            if (!sec.pal || !visible) return;
+            // CONTENT-LOCAL band reference (this section's origin within content). Matches the frame
+            // border + numbers in the same space, independent of scene scaling / centring.
+            const gOff = sec.contentX0 + sec.contentY0;
+            const rad = sec.pal.cellRadius;
+            const M = 12, half = 0.5;
+            ctx.lineJoin = "round";
+
+            function strokeCell(cx, cy, cw, ch, alpha, lw) {
+                const span = cw + ch;
+                const g = ctx.createLinearGradient(cx, cy, cx + span / 2, cy + span / 2); // 45deg axis
+                for (let k = 0; k <= M; k++) {
+                    const t = k / M;
+                    g.addColorStop(t, sec.pal.bandHex(gOff + cx + cy + span * t)); // sample the global band
+                }
+                ctx.strokeStyle = g;
+                ctx.lineWidth = lw;
+                ctx.globalAlpha = alpha;
+                const r = Math.max(0, Math.min(rad, Math.min(cw, ch) / 2 - half));
+                roundRect(ctx, cx + half, cy + half, cw - 1, ch - 1, r);
+                ctx.stroke();
+            }
+
+            for (let i = 0; i < sec.wsCount; i++) {
+                const col = i % sec.columns, row = Math.floor(i / sec.columns);
+                const cx = col * (sec.cellW + sec.cellGap);
+                const cy = sec.headerH + row * (sec.cellH + sec.cellGap);
+                const isActive = (sec.blockBase + i + 1) === sec.activeWsId;
+                strokeCell(cx, cy, sec.cellW, sec.cellH, isActive ? 1.0 : 0.45, isActive ? 2 : 1);
+            }
+            for (let i = 0; i < sec.specials.length; i++) {
+                const sCol = Math.floor(i / sec.rows), sRow = i % sec.rows;
+                const cx = sec.gridW + sec.specialGap + sCol * (sec.cellW + sec.cellGap);
+                const cy = sec.headerH + sRow * (sec.cellH + sec.cellGap);
+                strokeCell(cx, cy, sec.cellW, sec.cellH, 0.45, 1);
             }
         }
     }

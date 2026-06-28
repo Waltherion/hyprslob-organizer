@@ -264,10 +264,14 @@ Item {
             // TRUE 45deg band: the gradient axis is the (1,1) direction (NOT the box diagonal, which is
             // shallow for a wide box). Colour at a pixel depends on (x+y); sampled from the rolling band
             // so the whole thing scrolls as `phase` advances. span = max (x+y) across the box.
+            // Sample in CONTENT-LOCAL space so the frame stays in sync with the cell borders + numbers
+            // (which use contentX0/Y0), independent of scene scaling/centring. The frame's top-left sits
+            // at content-local (-framePad, -framePad), so its band origin is -2*framePad.
+            const gOff = -2 * canvas.framePad;
             const span = w + h;
             const g = ctx.createLinearGradient(0, 0, span / 2, span / 2);   // axis at exactly 45deg
             const M = 80;
-            for (let k = 0; k <= M; k++) { const t = k / M; g.addColorStop(t, pal.bandHex(span * t)); }
+            for (let k = 0; k <= M; k++) { const t = k / M; g.addColorStop(t, pal.bandHex(gOff + span * t)); }
             ctx.strokeStyle = g;
             ctx.lineWidth = bw;
             ctx.lineJoin = "round";
@@ -313,6 +317,7 @@ Item {
                 specialGap: canvas.specialGap
                 headerH: canvas.headerH
                 contentX0: canvas.originX(index)
+                contentY0: canvas.originY(index)
                 numberSize: Math.max(10, Math.round(canvas.cellH(index) * 0.26))
                 x: canvas.originX(index)
                 y: canvas.originY(index)
