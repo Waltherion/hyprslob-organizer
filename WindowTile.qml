@@ -28,12 +28,25 @@ Item {
         return raw.length > 0 ? raw : "application-x-executable";
     }
 
-    Rectangle {
-        anchors.fill: parent
+    // The window's own aspect (from its real size). The visible thumbnail = the aspect-fit rect of this
+    // ratio centred in the tile slot, so the preview + its rounded bg track the actual content exactly
+    // (no letterbox gap around them). The per-window "inner cell" outline used to sit at the slot edge
+    // here; it was removed (couldn't render uniformly across tiny tiles).
+    readonly property real fitAspect: {
+        const w = tile.windowData?.size?.[0] ?? 0, h = tile.windowData?.size?.[1] ?? 0;
+        return (w > 0 && h > 0) ? (w / h) : 1;
+    }
+    readonly property real contentW: Math.max(8, Math.min(width, height * fitAspect))
+    readonly property real contentH: Math.max(8, Math.min(height, width / fitAspect))
+
+    Rectangle {   // bg behind the preview / icon, sized to the content rect. No border: the per-window
+                  // "inner cell" outline was removed (impossible to render uniformly across tiny tiles);
+                  // the outer per-workspace cell still frames each workspace.
+        anchors.centerIn: parent
+        width: tile.contentW
+        height: tile.contentH
         radius: tile.radiusPx
         color: tile.bg
-        border.width: tile.pressed ? 2 : 1
-        border.color: (tile.hovered || tile.pressed) ? tile.hoverBorder : tile.tileBorder
 
         Image {   // app-icon fallback (shown when no live preview)
             anchors.centerIn: parent
@@ -48,13 +61,9 @@ Item {
     ScreencopyView {
         id: preview
         visible: tile.showPreview
-        readonly property real srcAspect: {
-            const w = tile.windowData?.size?.[0] ?? 0, h = tile.windowData?.size?.[1] ?? 0;
-            return (w > 0 && h > 0) ? (w / h) : 1;
-        }
         anchors.centerIn: parent
-        width: Math.min(parent.width, parent.height * srcAspect)
-        height: Math.min(parent.height, parent.width / srcAspect)
+        width: tile.contentW
+        height: tile.contentH
         captureSource: tile.showPreview ? tile.toplevel : null
         live: tile.live
         layer.enabled: true
