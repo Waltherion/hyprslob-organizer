@@ -21,6 +21,9 @@ by one rolling rainbow band.
   in workspace-number order, with live `ScreencopyView` thumbnails (icon fallback when previews are off).
 - **Click** a window → focus it and close the exposé. **Middle-click** → close the window.
   **Click** an empty cell → switch that monitor to that workspace.
+- **Keyboard:** arrow keys move a cell selection (across the stacked monitor boards), **Enter** switches
+  to the selected workspace and closes, **Delete** closes one window in it (repeatable), **Esc** closes.
+  The selection appears on the first arrow key, so it never gets in the way of the mouse.
 - **Drag a thumbnail** across monitors to move the window there — reliably, including onto empty
   workspaces, with no "ghost" workspaces landing on the wrong screen (see
   [`docs/FINDINGS.md`](docs/FINDINGS.md) for why this is the hard part and how it's solved).
