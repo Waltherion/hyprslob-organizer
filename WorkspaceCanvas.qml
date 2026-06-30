@@ -224,7 +224,57 @@ Item {
     }
     function closeWindow(addr) {
         if (!addr) return;
-        Hyprland.dispatch(`hl.dsp.window.close('address:${addr}')`);
+        // Must be the object form {window = 'address:...'} like window.move - the bare-string form
+        // ('address:...') is ignored by the dispatcher and closes the ACTIVE window instead.
+        Hyprland.dispatch(`hl.dsp.window.close({window = 'address:${addr}'})`);
+    }
+
+    // ---- keyboard navigation ----
+    // Arrows move a cell selection (across stacked monitor boards); Enter switches to it; Del closes a
+    // window in it; Esc closes the exposé (handled by the overlay). kbMon < 0 = inactive (no highlight)
+    // until the first arrow key, so mouse use isn't cluttered by a stray selection. State resets each
+    // open because the overlay Loader recreates this canvas.
+    property int kbMon: -1
+    property int kbCol: 0
+    property int kbRow: 0
+    readonly property int kbWsId: {
+        if (kbMon < 0 || kbMon >= n) return -1;
+        const idx = Math.min(kbRow * columns + kbCol, wsCount - 1);
+        return blockBaseForMon(mons[kbMon]) + idx + 1;
+    }
+    function kbStart() {                    // begin at the focused monitor's active workspace
+        let m = 0;
+        const fm = Hyprland.focusedMonitor;
+        if (fm) { const mi = monIndexForId(fm.id); if (mi >= 0) m = mi; }
+        kbMon = m;
+        const aws = (mons[m] && mons[m].activeWorkspace) ? mons[m].activeWorkspace.id : -1;
+        const idx = aws - blockBaseForMon(mons[m]) - 1;
+        if (idx >= 0 && idx < wsCount) { kbCol = idx % columns; kbRow = Math.floor(idx / columns); }
+        else { kbCol = 0; kbRow = 0; }
+    }
+    function kbMove(dCol, dRow) {
+        if (kbMon < 0) { kbStart(); return; } // first key just reveals the selection
+        let m = kbMon, c = kbCol + dCol, r = kbRow + dRow;
+        c = Math.max(0, Math.min(columns - 1, c));
+        if (r < 0) { if (m > 0) { m--; r = rows - 1; } else r = 0; }          // up into the board above
+        else if (r > rows - 1) { if (m < n - 1) { m++; r = 0; } else r = rows - 1; } // down into the next
+        let idx = r * columns + c;
+        if (idx >= wsCount) { idx = wsCount - 1; c = idx % columns; r = Math.floor(idx / columns); }
+        kbMon = m; kbCol = c; kbRow = r;
+    }
+    function kbActivate() {                 // switch to the selected workspace + close
+        if (kbMon < 0 || kbWsId < 0) return;
+        Hyprland.dispatch(`hl.dsp.focus({monitor = '${mons[kbMon].name}'})`);
+        Hyprland.dispatch(`hl.dsp.focus({workspace = '${kbWsId}'})`);
+        requestClose();
+    }
+    function kbCloseWindow() {              // close one window in the selected workspace (repeatable)
+        if (kbWsId < 0) return;
+        const by = hd.windowByAddress;
+        for (const a in by) {
+            const w = by[a];
+            if (w && w.workspace && w.workspace.id === kbWsId) { closeWindow(a); return; }
+        }
     }
 
     // ---- themed UI box behind the board (sibling of content, follows its geometry) ----

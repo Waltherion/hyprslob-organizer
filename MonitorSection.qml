@@ -101,6 +101,7 @@ Item {
             readonly property bool isActive: wsId === sec.activeWsId
             readonly property bool isDropTarget: sec.canvas && sec.canvas.draggingTargetWorkspace === wsId
             readonly property bool hovered: cellMA.containsMouse
+            readonly property bool kbSelected: sec.canvas && sec.canvas.kbWsId === wsId
             readonly property color bandColor: { if (sec.pal) sec.pal.phase; return sec.bandColorAt(cell); }
 
             x: colIdx * (sec.cellW + sec.cellGap)
@@ -108,15 +109,17 @@ Item {
             width: sec.cellW
             height: sec.cellH
             radius: sec.pal ? sec.pal.cellRadius : 6
-            // fill: drop-target > hover > active > idle
-            color: cell.isDropTarget ? Qt.rgba(sec.cHighlight.r, sec.cHighlight.g, sec.cHighlight.b, 0.30)
+            // fill: keyboard-selected > drop-target > hover > active > idle
+            color: cell.kbSelected   ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.25)
+                 : cell.isDropTarget  ? Qt.rgba(sec.cHighlight.r, sec.cHighlight.g, sec.cHighlight.b, 0.30)
                  : cell.hovered       ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.18)
                  : cell.isActive      ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.12)
                  :                       Qt.rgba(sec.cText.r, sec.cText.g, sec.cText.b, 0.05)
-            // when rainbow is on, the bandCells Canvas draws ALL cell borders (one gradient flowing
-            // through them); otherwise use the flat per-cell border (active/hover solid, idle 1-sample).
-            border.width: (sec.pal && sec.pal.rainbow) ? 0 : ((cell.isActive || cell.hovered) ? 2 : 1)
-            border.color: cell.isActive ? sec.cAccent
+            // keyboard selection draws a bold accent ring (over the rainbow band too); otherwise when
+            // rainbow is on the bandCells Canvas draws the borders, else the flat per-cell border.
+            border.width: cell.kbSelected ? 3 : ((sec.pal && sec.pal.rainbow) ? 0 : ((cell.isActive || cell.hovered) ? 2 : 1))
+            border.color: cell.kbSelected ? sec.cAccent
+                 : cell.isActive ? sec.cAccent
                  : cell.hovered ? Qt.rgba(sec.cAccent.r, sec.cAccent.g, sec.cAccent.b, 0.7)
                  : Qt.rgba(cell.bandColor.r, cell.bandColor.g, cell.bandColor.b, 0.45)
             Behavior on color { ColorAnimation { duration: 120 } }

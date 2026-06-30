@@ -21,8 +21,18 @@ Item {
     // the layer-shell window grabs keyboard focus (Exclusive) while open, but the item still needs
     // active focus for Keys to fire - grab it once the overlay is created (Loader activates on show).
     Component.onCompleted: overlay.forceActiveFocus()
-    Keys.onEscapePressed: overlay.requestClose()
-    Keys.onPressed: (e) => { if (e.key === Qt.Key_Escape) { overlay.requestClose(); e.accepted = true; } }
+    Keys.onPressed: (e) => {
+        switch (e.key) {
+        case Qt.Key_Escape: overlay.requestClose(); e.accepted = true; break;
+        case Qt.Key_Left:   board.kbMove(-1, 0);    e.accepted = true; break;
+        case Qt.Key_Right:  board.kbMove(1, 0);     e.accepted = true; break;
+        case Qt.Key_Up:     board.kbMove(0, -1);    e.accepted = true; break;
+        case Qt.Key_Down:   board.kbMove(0, 1);     e.accepted = true; break;
+        case Qt.Key_Return:
+        case Qt.Key_Enter:  board.kbActivate();     e.accepted = true; break;
+        case Qt.Key_Delete: board.kbCloseWindow();  e.accepted = true; break;
+        }
+    }
 
     // Dim layer only (the window itself is transparent, so the desktop shows through and the
     // layer_rule blurs it). backdropOpacity = dim amount: 0 = desktop fully visible, 1 = black.
@@ -34,6 +44,7 @@ Item {
     }
 
     WorkspaceCanvas {
+        id: board
         anchors.fill: parent
         anchors.margins: 40
         pal: overlay.pal
